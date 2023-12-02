@@ -1,4 +1,3 @@
-using System.IO.Compression;
 using AoCHelper;
 
 namespace AOC_2023;
@@ -10,23 +9,14 @@ public class Day01 : BaseDay
     public Day01()
     {
         _input = File.ReadAllText(InputFilePath);
-        // _input = "onetwothreefourfivesixseveneightnine34";
-        // _input = @"two2nine
-        // eightwothree
-        // abcone2threexyz
-        // xtwone3four
-        // 4nineeightseven2
-        // zoneight234
-        // 7pqrstsixteen";
     }
 
     public override ValueTask<string> Solve_1()
     {
         int sum = 0;
-        foreach (string s in _input.Split('\n'))
+        foreach (string line in _input.Split('\n'))
         {
-            var strs = s.Where(char.IsDigit).ToArray();
-            var nums = strs.Select(x => int.Parse(x.ToString())).ToArray();
+            var nums = line.Where(char.IsDigit).Select(c => c - '0').ToArray();
             // Console.WriteLine(s + " " + string.Join(", ", nums) + $" -> {nums[0] * 10 + nums[^1]}");
             sum += 10 * nums[0] + nums[^1];
         }
@@ -35,35 +25,35 @@ public class Day01 : BaseDay
     public override ValueTask<string> Solve_2()
     {
         int sum = 0;
-
         var digits = new List<string>(new[] { "one", "two", "three", "four", "five", "six", "seven", "eight", "nine" });
 
-
-        foreach (string s in _input.Split("\n"))
+        foreach (string _line in _input.Split("\n"))
         {
-            string f = s;
+            string line = _line; // not allowed to modify the foreach-variable...
             int i = 0;
-            while (i < f.Length)
+            while (i < line.Length)
             {
                 foreach (string digit in digits)
                 {
-                    if (f[i..].StartsWith(digit))
+                    if (line[i..].StartsWith(digit))
                     {
-                        // f = f.Replace(digit, (digits.IndexOf(digit) + 1).ToString());
-                        f = f[..i] + (digits.IndexOf(digit) + 1) + f[(i + digit.Length - 1)..];
+                        // Apparently we don't consume the characters of the spelled out digits.
+                        // This means that "eightwone" -> "8igh2w1ne" and not "8w1" which would
+                        // happen if "eight" was consumed into "8" and "one" into "1".
+                        // Instead we just change the first character of the spelled out digit
+                        // to the digits number.
+                        line = line[..i] + (digits.IndexOf(digit) + 1) + line[(i + 1)..];
+                        // f = f.Insert(i, (digits.IndexOf(digit) + 1).ToString()).Remove(i + 1, 1);
                         break;
                     }
                 }
                 i++;
             }
 
-            var strs = f.Where(char.IsDigit).ToArray();
-            var nums = strs.Select(x => int.Parse(x.ToString())).ToArray();
+            var nums = line.Where(char.IsDigit).Select(c => c - '0').ToArray();
             // Console.WriteLine(s + " " + f + " " + string.Join(", ", nums) + $" -> {nums[0] * 10 + nums[^1]}");
             sum += 10 * nums[0] + nums[^1];
         }
         return new(sum.ToString());
     }
 }
-
-// 54788 ++
