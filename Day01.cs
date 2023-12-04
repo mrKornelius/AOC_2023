@@ -18,7 +18,7 @@ public class Day01 : BaseDay
         {
             var nums = line.Where(char.IsDigit).Select(c => c - '0').ToArray();
             // Console.WriteLine(s + " " + string.Join(", ", nums) + $" -> {nums[0] * 10 + nums[^1]}");
-            sum += 10 * nums[0] + nums[^1];
+            sum += 10 * nums[0] + nums[^1]; // add upp first and last element of nums.
         }
         return new(sum.ToString());
     }
