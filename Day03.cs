@@ -13,15 +13,13 @@ public class Day03 : BaseDay
     public Day03()
     {
         _input = File.ReadAllText(InputFilePath);
-        foreach (string line in _input.Split('\n'))
-        {
-            G.Add(line);
-        }
+        G.AddRange(_input.Split('\n'));
         R = G.Count;
         C = G[0].Length;
     }
 
     // My variabel convention:
+    //  (r,c) = (row, column)
     //  G  - grid
     //  R  - total rows
     //  r  - this row
@@ -32,20 +30,7 @@ public class Day03 : BaseDay
     public override ValueTask<string> Solve_1()
     {
         long sum = 0;
-        List<(int, int)> symbolCoords = new();
-        for (int r = 0; r < R; ++r)
-        {
-            for (int c = 0; c < C; ++c)
-            {
-                if (!char.IsDigit(G[r], c) && G[r][c] != '.')
-                {
-                    symbolCoords.Add((r, c));
-                }
-            }
-        }
-
-        // List<(int, int)> symbolCoords = FindCoordsOfSymbols("!#%&/()=?@-+*_"); //TODO: fix this...
-        foreach (var coord in symbolCoords)
+        foreach (var coord in FindCoordsOfSymbols(c => c != '.' && !char.IsDigit(c)))
         {
             List<long> nums = ExtractNumbers(FindCoordsOfDigitsSurroundingCoord(coord));
             sum += nums.Sum();
@@ -57,7 +42,7 @@ public class Day03 : BaseDay
     public override ValueTask<string> Solve_2()
     {
         long sum = 0;
-        foreach (var coord in FindCoordsOfSymbols("*"))
+        foreach (var coord in FindCoordsOfSymbols(c => c == '*'))
         {
             List<long> nums = ExtractNumbers(FindCoordsOfDigitsSurroundingCoord(coord));
             sum += (nums.Count == 2) ? nums[0] * nums[1] : 0;
@@ -65,16 +50,15 @@ public class Day03 : BaseDay
         return new(sum.ToString());
     }
 
-    // Finds a characters that from a given string of symbols and returns a list of
-    // coordinates.
-    public List<(int, int)> FindCoordsOfSymbols(string symbols)
+    // Finds the a list of coordinates (r,c) of the symbols that match the given filter. 
+    public List<(int, int)> FindCoordsOfSymbols(Func<char, bool> filter)
     {
         List<(int, int)> coords = new();
         for (int r = 0; r < R; ++r)
         {
             for (int c = 0; c < C; ++c)
             {
-                if (symbols.Contains(G[r][c]))
+                if (filter(G[r][c]))
                 {
                     coords.Add((r, c));
                 }
@@ -83,14 +67,15 @@ public class Day03 : BaseDay
         return coords;
     }
 
-    // Extract all digits relative coordinates to (r,c) in a list.
+    // Finds all coordinates of digits surrounding the given coordinate.
     private List<(int, int)> FindCoordsOfDigitsSurroundingCoord((int r, int c) coord)
     {
         List<(int, int)> digits = new();
-        for (int dr = -1; dr < 2; ++dr)
+        for (int dr = -1; dr <= 1; ++dr)
         {
-            for (int dc = -1; dc < 2; ++dc)
+            for (int dc = -1; dc <= 1; ++dc)
             {
+                if (dr == 0 && dc == 0) continue;
                 var (nr, nc) = (coord.r + dr, coord.c + dc);
                 if (nr < 0 || nr >= R || nc < 0 || nc >= C) continue;
                 if (char.IsDigit(G[nr][nc])) digits.Add((nr, nc));
@@ -99,8 +84,9 @@ public class Day03 : BaseDay
         return digits;
     }
 
-    // Until list is empty find the numbers that correspond to each digit in the list and
-    // delete all coordinate of that number in the list.
+    // Until the given list is empty:
+    // Find the numbers that correspond to each digit in the list and delete all coordinate of 
+    // that number in the list.
     // When the list is empty we return a list of the found numbers. 
     private List<long> ExtractNumbers(List<(int, int)> digits)
     {
@@ -118,10 +104,7 @@ public class Day03 : BaseDay
             lc++;
             nums.Add(long.Parse(G[r][lc..rc]));
 
-            for (int i = lc; i < rc; i++)
-            {
-                digits.Remove((r, i));
-            }
+            for (int i = lc; i < rc; i++) digits.Remove((r, i));
         }
         return nums;
     }
