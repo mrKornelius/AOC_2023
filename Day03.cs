@@ -1,5 +1,3 @@
-using System.Data;
-using System.Data.Common;
 using AoCHelper;
 
 namespace AOC_2023;

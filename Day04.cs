@@ -8,20 +8,23 @@ public class Day04 : BaseDay
     private Dictionary<int, List<int>> winners = new();
     private Dictionary<int, List<int>> tickets = new();
 
-
     public Day04()
     {
         _input = File.ReadAllText(InputFilePath);
-        int row = 0;
-        foreach (string line in _input.Split('\n'))
+        foreach (var (line, row) in _input.Split('\n').Select((v, i) => (v, i)))
         {
-            var nums = line.Split(": ")[1].Trim().Split(" | ");
-            winners[row] = nums[0].Replace("  ", " ").Split().Select(int.Parse).ToList();
-            tickets[row] = nums[1].Trim().Replace("  ", " ").Split().Select(int.Parse).ToList();
-            row++;
+            string[] nums = line.Split(":")[1].Split("|");
+            winners[row] = SplitAndParseString(nums[0]);
+            tickets[row] = SplitAndParseString(nums[1]);
         }
     }
 
+    private List<int> SplitAndParseString(string nums) => nums
+            .Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(int.Parse)
+            .ToList();
+
+    private int CountWinnersInTicket(int game) => tickets[game].Intersect(winners[game]).Count();
     public override ValueTask<string> Solve_1()
     {
         long points = 0;
@@ -36,9 +39,8 @@ public class Day04 : BaseDay
     }
     public override ValueTask<string> Solve_2()
     {
-        List<long> scratchCards = new();
-        // start ith one of each scratchcard
-        foreach (var _ in tickets) scratchCards.Add(1);
+        // start with one of each scratchcard
+        List<int> scratchCards = Enumerable.Repeat(1, tickets.Count).ToList();
 
         for (int game = 0; game < tickets.Count; ++game)
         {
@@ -51,16 +53,5 @@ public class Day04 : BaseDay
         }
 
         return new(scratchCards.Sum().ToString());
-    }
-
-    private int CountWinnersInTicket(int game)
-    {
-        int correct = 0;
-        foreach (int n in tickets[game])
-        {
-            if (winners[game].Contains(n)) ++correct;
-        }
-
-        return correct;
     }
 }
